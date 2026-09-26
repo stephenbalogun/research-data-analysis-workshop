@@ -5,7 +5,7 @@ author: "Stephen Balogun (RStudio [now Posit] Certified tidyverse and shiny inst
 date: today
 format:
   revealjs:
-    embed-resources: true
+    embed-resources: false
     theme: [default, custom.scss]
     slide-number: true
     progress: true
@@ -14,8 +14,6 @@ format:
     transition: fade
     incremental: false
     center: false
-    code-fold: true
-    code-tools: true
     chalkboard: true
     preview-links: auto
     width: 1280
@@ -23,9 +21,10 @@ format:
     margin: 0.06
     logo: images/logo.png
     footer: "Introduction to Research Data Analysis | NPMCN/WACP Part II Prep"
+    include-in-header: scripts/head.html
     include-after-body: scripts/interactions.html
 execute:
-  echo: true
+  echo: false
   warning: false
   message: false
 bibliography: references.bib
@@ -36,9 +35,9 @@ bibliography: references.bib
 library(tidyverse)
 library(gt)
 library(scales)
+library(patchwork)
 
 set.seed(2026)
-
 n <- 742
 
 hypertension_demo <- tibble(
@@ -58,7 +57,6 @@ hypertension_demo <- tibble(
   monthly_income = round(rlnorm(n, meanlog = 11, sdlog = 0.6))
 ) |>
   mutate(
-    # Build correlated risk: age, bmi, smoking increase hypertension log-odds
     logit_htn = -6.5 + 0.05 * age + 0.09 * bmi + 0.6 * smoking,
     p_htn = plogis(logit_htn),
     hypertension = rbinom(n, 1, p_htn),
@@ -72,16 +70,15 @@ hypertension_demo <- tibble(
   ) |>
   select(-logit_htn, -p_htn)
 
-# write for reuse / participant download
 write_csv(hypertension_demo, "data/hypertension_demo.csv")
 
 pal <- list(navy = "#0B2545", teal = "#1B7F79", green = "#5B8C5A",
-            amber = "#E0A458", bg = "#F7F5F0", ink = "#1C1C1C")
+            amber = "#E0A458", coral = "#D8555D", bg = "#F7F5F0", ink = "#1C1C1C")
 
 theme_workshop <- function() {
-  theme_minimal(base_size = 16) +
+  theme_minimal(base_size = 17) +
     theme(
-      plot.title = element_text(face = "bold", color = pal$navy, size = 18),
+      plot.title = element_text(face = "bold", color = pal$navy, size = 19),
       plot.subtitle = element_text(color = "grey30"),
       panel.grid.minor = element_blank(),
       axis.title = element_text(color = "grey20")
@@ -90,15 +87,19 @@ theme_workshop <- function() {
 ```
 
 ::: notes
-Simulated "Hypertension in Urban Communities Study" (n = 742) is the running case used across all modules. All 742 rows are simulated — state this explicitly to participants at first use (Module 1, slide "Meet the dataset").
+Simulated "Hypertension in Urban Communities Study" (n = 742) is the running case used across all modules. All 742 rows are simulated — state this explicitly to participants at first use.
 :::
 
-# Module 1 — Welcome, Research Foundations & the Analysis Journey {background-color="#0B2545"}
+# Module 1 — Welcome, Research Foundations & the Analysis Journey {background-gradient="linear-gradient(135deg, #0B2545, #1B7F79)"}
+
+::: {.icon-float}
+<i class="fa-solid fa-magnifying-glass-chart fa-beat-fade fa-3x"></i>
+:::
 
 ## You've collected your data. Now what? {.center}
 
-::: r-fit-text
-**742 rows.**
+::: {.r-fit-text .count-up-wrap}
+<span class="count-up" data-target="742">0</span> rows.
 :::
 
 You have completed data collection for your dissertation.
@@ -111,14 +112,11 @@ Opening hook. Ask verbally: "How many of you already have a dataset sitting on y
 
 ------------------------------------------------------------------------
 
-### Workshop Expectations
+### Workshop Expectations {.animate-slide}
 
 - 120 minutes, 7 short modules — we move briskly
-
 - You will be asked to **commit to an answer** before we reveal it (chat / poll / reaction)
-
 - One running case study throughout: the *Hypertension in Urban Communities Study*
-
 - Goal is not to make you a statistician — it is to make you a **defensible decision-maker**
 
 ::: notes
@@ -136,7 +134,7 @@ By the end of this workshop you will be able to:
 1.  Link objective → design → variables → analysis
 2.  Review common PH study designs
 3.  Revise sample-size/sampling logic
-4.  Classify variables (categorical/continuous, NOIR)
+4.  Classify variables
 5.  Spot common data-quality problems
 6.  Choose descriptive statistics & visuals
 :::
@@ -157,23 +155,39 @@ Don't read all 12 aloud — point out this slide will resurface as a "recall car
 
 ------------------------------------------------------------------------
 
-### 🗳️ Opening Diagnostic Poll {background-color="#1B7F79"}
+### 🗳️ Opening Diagnostic Poll {background-gradient="linear-gradient(135deg, #1B7F79, #5B8C5A)"}
+
+<i class="fa-solid fa-square-poll-vertical fa-bounce fa-2x"></i>
 
 **POLL (Teams):** *How confident are you right now in choosing the correct statistical test for your dissertation objective?*
 
-- A. Very confident
-- B. Somewhat confident
-- C. Not confident / guessing
+
+
+::: {.card-row}
+::: {.pill .pill-navy}
+A. Very confident
+:::
+
+::: {.pill .pill-teal}
+B. Somewhat confident
+:::
+
+::: {.pill .pill-coral}
+C. Not confident / guessing
+:::
+:::
 
 ::: notes
 Launch a live Teams poll. Do not comment on results yet — revisit at closing to show growth. No right answer; this is a baseline, not a quiz.
 :::
+
 
 ------------------------------------------------------------------------
 
 ### The Analysis Journey — Our Map for Today
 
 ```{mermaid}
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#1B7F79','primaryTextColor':'#ffffff','primaryBorderColor':'#0B2545','lineColor':'#E0A458','secondaryColor':'#5B8C5A','tertiaryColor':'#F7F5F0','fontSize':'18px'}}}%%
 flowchart LR
   A[Research<br>Question] --> B[Study<br>Design]
   B --> C[Variables]
@@ -184,17 +198,17 @@ flowchart LR
   G --> H[Interpretation<br>& Reporting]
 ```
 
-::: fragment
-**🧭 Where are we?** This banner returns at the start of every module.
+::: {.fragment .pop-in}
+🧭 **Where are we?** This banner returns at the start of every module.
 :::
 
 ::: notes
-This is the recurring "Where are we in the analysis journey?" visual — screenshot or rebuild a simplified version to insert at the top of every module title slide.
+This is the recurring "Where are we in the analysis journey?" visual.
 :::
 
 ------------------------------------------------------------------------
 
-### Core Takeaway #1 {.center background-color="#0B2545"}
+### Core Takeaway #1 {.center background-gradient="linear-gradient(135deg, #0B2545, #1B7F79)"}
 
 ::: r-fit-text
 Analysis begins with the **research question** and **study design** —
@@ -207,6 +221,7 @@ not with opening SPSS, Stata, or R.
 ### Rapid Review — Study Design Landscape
 
 ```{mermaid}
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#0B2545','primaryTextColor':'#ffffff','primaryBorderColor':'#E0A458','lineColor':'#1B7F79','secondaryColor':'#5B8C5A','tertiaryColor':'#F7F5F0'}}}%%
 flowchart TD
   S[Study Designs] --> O[Observational]
   S --> E[Experimental]
@@ -234,7 +249,7 @@ Emphasize: descriptive cross-sectional studies describe "what/who/where"; analyt
 | RCT / Community trial | Does intervention change outcome? | Allocated exposure → outcome | Risk difference / RR |
 
 ::: notes
-Ask participants (chat): "Which of these is your dissertation design?" Use responses to tailor emphasis for the rest of the workshop.
+Ask participants (chat): "Which of these is your dissertation design?"
 :::
 
 ------------------------------------------------------------------------
@@ -244,15 +259,15 @@ Ask participants (chat): "Which of these is your dissertation design?" Use respo
 A resident recruits 300 hypertensive and 300 normotensive adults from a clinic and looks *backward* at their salt-intake history.
 
 ::: {.fragment .fade-in}
-**A.** Cohort   **B.** Case-control   **C.** RCT   **D.** Cross-sectional
+**A.** Cohort &nbsp;&nbsp; **B.** Case-control &nbsp;&nbsp; **C.** RCT &nbsp;&nbsp; **D.** Cross-sectional
 :::
 
-::: {.fragment .fade-in}
+::: {.fragment .pop-in .callout-correct}
 **Answer: B — Case-control.** Outcome status (hypertensive vs not) is fixed at recruitment; exposure (salt intake) is measured retrospectively.
 :::
 
 ::: notes
-Commit-reveal-explain. Ask for chat answers before advancing the fragment. Common wrong answer: cross-sectional — clarify that the *backward-looking, outcome-anchored sampling* is the case-control signature.
+Commit-reveal-explain. Common wrong answer: cross-sectional — clarify the backward-looking, outcome-anchored sampling is the case-control signature.
 :::
 
 ------------------------------------------------------------------------
@@ -267,7 +282,11 @@ which constrains which **statistics** are valid.
 
 Get this chain wrong, and no software will save you. Next: sample size and sampling.
 
-# Module 2 — Sample Size & Sampling {background-color="#0B2545"}
+# Module 2 — Sample Size & Sampling {background-gradient="linear-gradient(135deg, #0B2545, #5B8C5A)"}
+
+::: {.icon-float}
+<i class="fa-solid fa-users-viewfinder fa-bounce fa-3x"></i>
+:::
 
 ## 🧭 Where are we? — Design ✅ → **Sample Size** → Variables → ...
 
@@ -286,13 +305,13 @@ Get this chain wrong, and no software will save you. Next: sample size and sampl
 
 $$n = \frac{Z^2 \, P(1-P)}{d^2}$$
 
-| Symbol | Meaning                                                   |
+| Symbol | Meaning |
 |--------|-----------------------------------------------------------|
 | $Z$    | Standard normal value for confidence level (1.96 for 95%) |
 | $P$    | Expected proportion (from prior literature/pilot)         |
 | $d$    | Margin of error (precision) you will accept               |
 
-::: fragment
+::: {.fragment .pop-in}
 We are **not** deriving this — we are learning what each term forces you to *justify*.
 :::
 
@@ -302,14 +321,11 @@ We are **not** deriving this — we are learning what each term forces you to *j
 
 > Expected hypertension prevalence in an urban LGA = **30%** (from prior study). You want **5%** precision at 95% confidence.
 
-```{r sample-size-example}
-Z <- 1.96
-P <- 0.30
-d <- 0.05
+::: {.calc-card}
+**Worked calculation**
 
-n_required <- (Z^2 * P * (1 - P)) / d^2
-ceiling(n_required)
-```
+<span class="formula-step">1.96² × 0.30 × 0.70</span> <span class="arrow">÷</span> <span class="formula-step">0.05²</span> <span class="arrow">→</span> <span class="formula-step answer-pill">323 participants</span>
+:::
 
 ::: fragment
 **≈ 323 participants**, before adjustments.
@@ -331,13 +347,9 @@ Walk through substitution live. Ask: "What happens to n if P were 50% instead of
 :::
 
 ::: {.column width="50%"}
-**Design effect (DEFF)** $$n_{cluster} = n \times DEFF$$ Applied when sampling is **not** simple random (e.g., cluster/multistage) — accounts for reduced precision from clustering.
+**Design effect (DEFF)** $$n_{cluster} = n \times DEFF$$ Applied when sampling is **not** simple random (e.g., cluster/multistage).
 :::
 :::::
-
-::: notes
-Emphasize: DEFF is often the most forgotten adjustment in dissertations that use multistage sampling but calculate n as if SRS.
-:::
 
 ------------------------------------------------------------------------
 
@@ -350,7 +362,7 @@ For comparing **two proportions** or **two means**, sample size formulas add:
 - Desired **power** (usually 80–90%) in addition to confidence level
 - Larger detectable difference → smaller required sample
 
-::: fragment
+::: {.fragment .pop-in}
 You will rarely hand-calculate these — but you must be able to **defend every input** you fed into G\*Power/Stata/R.
 :::
 
@@ -359,6 +371,7 @@ You will rarely hand-calculate these — but you must be able to **defend every 
 ### Sampling Methods at a Glance
 
 ```{mermaid}
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#5B8C5A','primaryTextColor':'#ffffff','primaryBorderColor':'#0B2545','lineColor':'#E0A458','secondaryColor':'#1B7F79'}}}%%
 flowchart TD
   P[Sampling Methods] --> Prob[Probability]
   P --> NonProb[Non-probability]
@@ -370,12 +383,8 @@ flowchart TD
   NonProb --> Snow[Snowball]
 ```
 
-::: fragment
+::: {.fragment .pop-in}
 ⚠️ Non-probability sampling **limits generalizability** — say so explicitly in your limitations.
-:::
-
-::: notes
-Ask participants which method their proposed dissertation uses; multistage/cluster is common for community-based PH surveys in Nigeria.
 :::
 
 ------------------------------------------------------------------------
@@ -385,14 +394,18 @@ Ask participants which method their proposed dissertation uses; multistage/clust
 A resident selects every 5th patient file from the clinic register after a random start point. This is:
 
 ::: fragment
-**A.** Stratified   **B.** Systematic   **C.** Cluster   **D.** Purposive
+**A.** Stratified &nbsp;&nbsp; **B.** Systematic &nbsp;&nbsp; **C.** Cluster &nbsp;&nbsp; **D.** Purposive
 :::
 
-::: fragment
+::: {.fragment .callout-correct}
 **Answer: B — Systematic sampling.** Fixed interval + random start.
 :::
 
-# Module 3 — Variables & Measurement Scales {background-color="#0B2545"}
+# Module 3 — Variables & Measurement Scales {background-gradient="linear-gradient(135deg, #1B7F79, #0B2545)"}
+
+::: {.icon-float}
+<i class="fa-solid fa-ruler-combined fa-spin-pulse fa-3x"></i>
+:::
 
 ## 🧭 Where are we? — Design ✅ → Sample Size ✅ → **Variables** → ...
 
@@ -401,7 +414,7 @@ A resident selects every 5th patient file from the clinic register after a rando
 ### Two Fundamental Roles
 
 ::::: columns
-::: {.column width="50%"}
+::: {.column width="80%" .gradient-card .card-teal}
 #### 🎯 Outcome / Dependent
 
 The thing you are trying to explain or predict.
@@ -409,7 +422,9 @@ The thing you are trying to explain or predict.
 *e.g., hypertension status, systolic BP*
 :::
 
-::: {.column width="50%"}
+<br>
+
+::: {.column width="80%" .gradient-card .card-amber}
 #### 🔧 Exposure / Predictor / Independent
 
 The thing you think influences the outcome.
@@ -418,7 +433,7 @@ The thing you think influences the outcome.
 :::
 :::::
 
-::: fragment
+::: {.fragment .pop-in}
 Every dissertation objective should let you point at both.
 :::
 
@@ -427,14 +442,15 @@ Every dissertation objective should let you point at both.
 ### Continuous vs Discrete vs Categorical
 
 | Type        | Definition              | Example                 |
-|-------------|-------------------------|-------------------------|
-| Continuous  | Any value on a range    | Age, BMI, SBP           |
-| Discrete    | Countable whole numbers | Number of pregnancies   |
-| Categorical | Named groups            | Sex, LGA, disease stage |
+|-------------|--------------------------|--------------------------|
+| Continuous  | Any value on a range     | Age, BMI, SBP           |
+| Discrete    | Countable whole numbers  | Number of pregnancies   |
+| Categorical | Named groups             | Sex, LGA, disease stage |
 
 Variables can be converted from one form to another
 
 ```{mermaid}
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#E0A458','primaryTextColor':'#0B2545','primaryBorderColor':'#0B2545','lineColor':'#1B7F79'}}}%%
 flowchart LR
   C[Continuous] --> D[Discrete]
   D --> K[Categorical]
@@ -445,6 +461,7 @@ flowchart LR
 ### NOIR — The Measurement Scale Ladder
 
 ```{mermaid}
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#1B7F79','primaryTextColor':'#ffffff','primaryBorderColor':'#0B2545','lineColor':'#E0A458'}}}%%
 flowchart LR
   N[Nominal<br>named, unordered] --> O[Ordinal<br>ordered, unequal gaps]
   O --> I[Interval<br>ordered, equal gaps,<br>no true zero]
@@ -453,35 +470,33 @@ flowchart LR
 
 | Scale | Key idea | Public-health examples |
 |-------------------|---------------------|--------------------------------|
-| **Nominal** | Categories with **no inherent order** | Hypertension status (yes/no); vaccination status (vaccinated/unvaccinated); blood group (A/B/AB/O); LGA of residence; marital status; disease diagnosis; type of health facility |
-| **Ordinal** | Categories have a **meaningful order**, but gaps are not necessarily equal | Cancer stage (I–IV); disease severity (mild/moderate/severe); educational attainment; socioeconomic class; Likert response (strongly disagree → strongly agree); nutritional status categories |
-| **Interval** | Equal intervals, but **zero is arbitrary** | Temperature in °C; calendar year; date of diagnosis/date of birth |
-| **Ratio** | Equal intervals **and a meaningful true zero** | Age; weight; height; systolic BP; CD4 count; monthly income; duration of illness; number of clinic visits |
+| **Nominal** | Categories with **no inherent order** | Hypertension status; vaccination status; blood group; LGA; marital status; diagnosis |
+| **Ordinal** | Categories **ordered**, gaps not necessarily equal | Cancer stage (I–IV); disease severity; educational attainment; Likert response |
+| **Interval** | Equal intervals, **zero is arbitrary** | Temperature in °C; calendar year; date of diagnosis |
+| **Ratio** | Equal intervals **and a true zero** | Age; weight; height; SBP; CD4 count; income; illness duration |
 
 ::: notes
-Common confusion: temperature in °C is interval (no true zero — 0°C isn't "no temperature"); Kelvin would be ratio. Age/BMI/income all have a true zero and are ratio.
+Common confusion: temperature in °C is interval (no true zero); Kelvin would be ratio.
 :::
 
 ------------------------------------------------------------------------
 
 ### Tabular Data
 
-Data is collected into a form of spreadsheet with rows and variables
+1. Data is collected into a form of spreadsheet with rows and variables   
 
-Rows: horizontal (represents all measurements from a single unique observation)
+2. Rows: horizontal (all measurements from a single unique observation)  
 
-Columns: vertical (a single attribute measured across all observations)
+3. Columns: vertical (a single attribute measured across all observations)
 
-::: fragment
-**📌 The Golden Rule of Tidy Data**
+::: {.fragment .pop-in .callout-box}
+📌 **The Golden Rule of Tidy Data**
 
-To keep data "tidy" and ready for analysis, every dataset must follow this strict structure:
++  Each variable must have its own column.   
 
-Each variable must have its own column.
++  Each observation must have its own row.  
 
-Each observation must have its own row.
-
-Each value (individual cell) must contain a single measurement.
++  Each value (individual cell) must contain a single measurement.
 :::
 
 ------------------------------------------------------------------------
@@ -489,39 +504,37 @@ Each value (individual cell) must contain a single measurement.
 ### 🎯 Classify-the-Variable Round (Quiz)
 
 ::: fragment
-**1. Which of the followings is not a categorical variable?**
+**1. Which of the following is *not* a categorical variable?**
 
-A)  Place of delivery
+A) Place of delivery &nbsp;&nbsp; B) Occupation &nbsp;&nbsp; C) Salary &nbsp;&nbsp; D) Ethnicity
+:::
 
-B)  Occupation
-
-C)  Salary
-
-D)  Ethnicity
+::: {.fragment .callout-correct}
+**Answer: C — Salary.** It's continuous not categorical.
 :::
 
 ::: fragment
-**2. Which of the followings is a continuous variable?**
+**2. Which of the following is a continuous variable?**
 
-A)  Heart rate
+A) Heart rate &nbsp;&nbsp; B) Eye colour &nbsp;&nbsp; C) CGPA
+:::
 
-B)  Eye Colour
-
-C)  CGPA
+::: {.fragment .callout-correct}
+**Answer: C — CGPA.**
 :::
 
 ::: fragment
-**3. Which of the variable(s) below does not follow the "tidy data" principle?**
+**3. Which variable below does *not* follow the "tidy data" principle if BP is stored as "120/80" in one cell?**
 
-A)  Blood Pressure
+A) Blood Pressure &nbsp;&nbsp; B) BMI &nbsp;&nbsp; C) Heart rate
+:::
 
-B)  BMI
-
-C)  Heart rate
+::: {.fragment .callout-correct}
+**Answer: A.** "120/80" packs two values (systolic & diastolic) into one cell — split into two columns.
 :::
 
 ::: notes
-Go one at a time; ask chat for answer before revealing each fragment. The Likert item is the deliberate trap — many residents wrongly average Likert scores as if interval.
+Go one at a time; ask chat for answer before revealing each fragment.
 :::
 
 ------------------------------------------------------------------------
@@ -532,11 +545,7 @@ Go one at a time; ask chat for answer before revealing each fragment. The Likert
 **Variable Type → Summary Measure → Visualization → Statistical Test**
 :::
 
-Get the variable type wrong, and every downstream choice — the table you build, the graph you draw, the test you run — is built on sand.
-
-::: notes
-This exact phrase should be echoed again at the start of Module 5. Consider a persistent footer icon or recurring slide graphic.
-:::
+Get the variable type wrong, and every downstream choice is built on sand.
 
 ------------------------------------------------------------------------
 
@@ -545,14 +554,18 @@ This exact phrase should be echoed again at the start of Module 5. Consider a pe
 `hypertension` (Yes/No) should be summarized as:
 
 ::: fragment
-**A.** Mean ± SD   **B.** Frequency & percentage   **C.** Median (IQR)
+**A.** Mean ± SD &nbsp;&nbsp; **B.** Frequency & percentage &nbsp;&nbsp; **C.** Median (IQR)
 :::
 
-::: fragment
+::: {.fragment .callout-correct}
 **Answer: B.** Categorical variables are summarized with counts/percentages, never means.
 :::
 
-# Module 4 — Data Collection, Management & Quality Assurance {background-color="#0B2545"}
+# Module 4 — Data Collection, Management & Quality Assurance {background-gradient="linear-gradient(135deg, #0B2545, #D8555D)"}
+
+::: {.icon-float}
+<i class="fa-solid fa-broom fa-shake fa-3x"></i>
+:::
 
 ## 🧭 Where are we? — ... → Variables ✅ → **Data Quality** → ...
 
@@ -561,23 +574,29 @@ This exact phrase should be echoed again at the start of Module 5. Consider a pe
 ### Tools You'll Likely Encounter
 
 ::::: columns
-::: {.column width="50%"}
+::: {.column width="90%" .gradient-card .card-navy}
 **Digital**
 
-- KoboToolbox
-- ODK
-- REDCap
+<i class="fa-solid fa-mobile-screen fa-fade"></i> KoboToolbox   
+
+<i class="fa-solid fa-tablet-screen-button fa-fade"></i> ODK   
+
+<i class="fa-solid fa-database fa-fade"></i> REDCap
 :::
 
-::: {.column width="50%"}
+<br>
+
+
+::: {.column width="90%" .gradient-card .card-teal}
 **Paper-based**
 
-- Interviewer-administered questionnaires
-- Checklists
+<i class="fa-solid fa-file-lines"></i> Interviewer-administered questionnaires   
+
+<i class="fa-solid fa-list-check"></i> Checklists
 :::
 :::::
 
-::: fragment
+::: {.fragment .pop-in}
 Digital tools reduce (but do not eliminate) data-entry error — validation rules must still be built in deliberately.
 :::
 
@@ -586,6 +605,7 @@ Digital tools reduce (but do not eliminate) data-entry error — validation rule
 ### From Raw Data to Analysis-Ready
 
 ```{mermaid}
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#D8555D','primaryTextColor':'#ffffff','primaryBorderColor':'#0B2545','lineColor':'#1B7F79','tertiaryColor':'#5B8C5A'}}}%%
 flowchart LR
   Raw[Raw Data] --> Val[Validation]
   Val --> Clean[Cleaning]
@@ -593,7 +613,7 @@ flowchart LR
   Recode --> Ready[Analysis-Ready<br>Dataset]
 ```
 
-::: fragment
+::: {.fragment .pop-in}
 **Data cleaning is analysis** — not an administrative chore before "the real work."
 :::
 
@@ -608,41 +628,39 @@ flowchart LR
 | 003 | 45      | **1** | **-20** | 2031-06-01 | Yes          |
 | 001 | 34      | M     | 128     | 1990-04-12 | No           |
 
-::: fragment
-**Errors:** 1. implausible age (250)
+<br>
 
-2.  mixed sex coding (M/F vs 1/2)
+::: {.fragment .pop-in .callout-box}
+**Errors:**   
 
-3.  negative SBP
++  implausible age (250)  
 
-4.  future/impossible date
++  mixed sex coding (M/F vs 1/2)  
 
-5.  **duplicate ID 001**
-:::
++  negative SBP 
 
-::: notes
-Give participants 30 real seconds via chat before revealing. This mirrors the required "messy mini-dataset" exercise.
++  impossible future date  
+
++  **duplicate ID 001**
 :::
 
 ------------------------------------------------------------------------
 
 ### Common Data-Quality Problems Checklist
 
-- Missing values (and *why* they're missing — random vs systematic)
+- Missing values (random vs systematic)
 - Duplicate records/IDs
 - Impossible or out-of-range values
 - Inconsistent categorical coding across data collectors
 - Outliers — real vs data-entry error
 - BMI inconsistent with recorded height/weight
-- Unnecessary categorization of continuous variables (loses information/power)
-
-::: notes
-Stress the "unnecessary categorization" point — a frequent dissertation error is converting a perfectly good continuous variable into categories without justification, discarding statistical power.
-:::
+- Unnecessary categorization of continuous variables (loses power)
 
 ------------------------------------------------------------------------
 
-### Ethics Reminder
+### Ethics Reminder {background-gradient="linear-gradient(135deg, #0B2545, #1B7F79)"}
+
+<i class="fa-solid fa-user-shield fa-beat fa-2x"></i>
 
 ::: r-fit-text
 Anonymity. Confidentiality. Secure storage.
@@ -650,7 +668,11 @@ Anonymity. Confidentiality. Secure storage.
 Every dataset in this workshop is **simulated** — none of these 742 "participants" exist.
 :::
 
-# Module 5 — Descriptive & Inferential Statistics {background-color="#0B2545"}
+# Module 5 — Descriptive & Inferential Statistics {background-gradient="linear-gradient(135deg, #0B2545, #5B8C5A, #1B7F79)"}
+
+::: {.icon-float}
+<i class="fa-solid fa-chart-column fa-bounce fa-3x"></i>
+:::
 
 ## 🧭 Where are we? — ... → Data Quality ✅ → **Descriptive & Inferential** → ...
 
@@ -666,24 +688,31 @@ Every dataset in this workshop is **simulated** — none of these 742 "participa
 
 ------------------------------------------------------------------------
 
-### Measures of Central Tendency and Measures of Dispersion
+### Measures of Central Tendency and Dispersion
 
 ::::: columns
-::: {.column width="50%"}
-**Measures of Central Tendency**
+::: {.column width="90%" .gradient-card .card-teal}
+**Central Tendency**
 
-- Mean
-- Median
-- Mode
+<i class="fa-solid fa-scale-balanced"></i> Mean  
+
+<i class="fa-solid fa-arrows-left-right-to-line"></i> Median  
+
+<i class="fa-solid fa-crown"></i> Mode
 :::
 
-::: {.column width="50%"}
-**Measures of Dispersion**
+<br>
 
-- Standard Deviation
-- Inter Quartile Range
-- Variance
-- Range
+::: {.column width="90%" .gradient-card .card-amber}
+**Dispersion**
+
+<i class="fa-solid fa-arrows-up-down"></i> Standard Deviation  
+
+<i class="fa-solid fa-arrows-left-right"></i> Inter-Quartile Range
+
+Variance  
+
+Range
 :::
 :::::
 
@@ -703,31 +732,31 @@ df_shapes <- tibble(
 ggplot(df_shapes, aes(value, fill = shape)) +
   geom_histogram(bins = 40, show.legend = FALSE) +
   facet_wrap(~shape, scales = "free") +
-  scale_fill_manual(values = c(pal$teal, pal$amber, pal$green)) +
+  scale_fill_manual(values = c(pal$teal, pal$amber, pal$coral)) +
   theme_workshop() +
   labs(title = "Symmetric vs Skewed Distributions", x = NULL, y = NULL)
 ```
 
 ::: notes
-Point out: symmetric → mean ≈ median; right-skew → mean pulled above median; left-skew → mean pulled below median.
+Symmetric → mean ≈ median; right-skew → mean pulled above median; left-skew → mean pulled below median.
 :::
 
 ------------------------------------------------------------------------
 
 ### Mean vs Median: The Outlier Effect
 
-Generally, there are tests to check for skewness (Normality tests)
+Generally, there are tests to check for skewness (normality tests). Quick "eyeball" methods include:
 
-Quick "Eyeball" methods include:
++  <i class="fa-solid fa-chart-simple"></i> Histogram
 
-1.  Histogram
++  <i class="fa-solid fa-square"></i> Boxplot
 
-2.  Boxplot
++  <i class="fa-solid fa-chart-line"></i> Q-Q plot
 
-3.  Q-Q plot
+<br>
 
-::: fragment
-**Rule of thumb:** skewed data → report **median (IQR)**, not mean ± SD.
+::: {.fragment .pop-in .stat-badge}
+Rule of thumb: skewed data → report median (IQR), not mean ± SD
 :::
 
 ------------------------------------------------------------------------
@@ -741,10 +770,11 @@ hypertension_demo |>
     median_sbp = median(systolic_bp),
     q1 = quantile(systolic_bp, 0.25), q3 = quantile(systolic_bp, 0.75)
   ) |>
-  gt() |> fmt_number(decimals = 1)
+  gt() |> fmt_number(decimals = 1) |>
+  tab_options(table.background.color = "#F7F5F0")
 ```
 
-::: fragment
+::: {.fragment .pop-in}
 Mean and median are close here → SBP is approximately symmetric → **mean ± SD is defensible**.
 :::
 
@@ -752,24 +782,8 @@ Mean and median are close here → SBP is approximately symmetric → **mean ± 
 
 ### Visualization Gallery — Match the Graph to the Variable
 
-:::::: columns
-::: {.column width="33%"}
-**Categorical** Bar chart
-:::
-
-::: {.column width="33%"}
-**Continuous (shape)** Histogram
-:::
-
-::: {.column width="33%"}
-**Continuous (comparison)** Box plot
-:::
-::::::
-
 ```{r viz-gallery}
 #| fig-height: 3.2
-library(patchwork)
-
 p1 <- ggplot(hypertension_demo, aes(hypertension, fill = hypertension)) +
   geom_bar() + scale_fill_manual(values = c(pal$teal, pal$amber)) +
   theme_workshop() + theme(legend.position = "none") + labs(title = "Bar Chart", x=NULL,y=NULL)
@@ -779,15 +793,11 @@ p2 <- ggplot(hypertension_demo, aes(systolic_bp)) +
   theme_workshop() + labs(title = "Histogram", x=NULL,y=NULL)
 
 p3 <- ggplot(hypertension_demo, aes(hypertension, systolic_bp, fill = hypertension)) +
-  geom_boxplot(show.legend = FALSE) + scale_fill_manual(values = c(pal$teal, pal$amber)) +
+  geom_boxplot(show.legend = FALSE) + scale_fill_manual(values = c(pal$coral, pal$green)) +
   theme_workshop() + labs(title = "Box Plot", x=NULL,y=NULL)
 
 p1 | p2 | p3
 ```
-
-::: fragment
-https://stbalo2002.shinyapps.io/Intro_to_biostatistics
-:::
 
 ------------------------------------------------------------------------
 
@@ -796,11 +806,11 @@ https://stbalo2002.shinyapps.io/Intro_to_biostatistics
 You want to show the **relationship between age and systolic BP** (both continuous). Best graph?
 
 ::: fragment
-**A.** Bar chart   **B.** Box plot   **C.** Scatterplot   **D.** Pie chart
+**A.** Bar chart &nbsp;&nbsp; **B.** Box plot &nbsp;&nbsp; **C.** Scatterplot &nbsp;&nbsp; **D.** Pie chart
 :::
 
-::: fragment
-**Answer: C — Scatterplot.** Two continuous variables → scatterplot (sets up Module 6's regression line).
+::: {.fragment .callout-correct}
+**Answer: C — Scatterplot.** Two continuous variables → scatterplot.
 :::
 
 ------------------------------------------------------------------------
@@ -823,16 +833,12 @@ We measure a **sample** — and use it to make a careful, uncertain statement ab
 ❌ *"The probability the null hypothesis is true."*
 :::
 
-::: fragment
-✅ **The p-value quantifies how incompatible the observed data are with the null model, under the assumptions of the test.**
+::: {.fragment .pop-in .callout-correct}
+✅ The p-value quantifies how incompatible the observed data are with the null model, under the assumptions of the test.
 :::
 
 ::: fragment
 In plain terms: *"If there really were no effect, how surprising would data like ours be?"*
-:::
-
-::: notes
-This is the single most important misconception to correct all workshop. Slow down here.
 :::
 
 ------------------------------------------------------------------------
@@ -840,9 +846,9 @@ This is the single most important misconception to correct all workshop. Slow do
 ### The 95% Confidence Interval
 
 ::: incremental
-- A **range of plausible values** for the true population effect, given your sample
+- A **range of plausible values** for the true population effect
 - "95% confidence" describes the **procedure's long-run reliability**, not this specific interval
-- A CI that **excludes the null value** (0 for differences, 1 for ratios) aligns with statistical significance
+- A CI that **excludes the null value** aligns with statistical significance
 - **Width tells you precision** — wide CI = imprecise, even if "significant"
 :::
 
@@ -855,33 +861,32 @@ This is the single most important misconception to correct all workshop. Slow do
 | **Reject H0**         | Type I error (α) | Correct decision  |
 | **Fail to reject H0** | Correct decision | Type II error (β) |
 
-::: fragment
-**Power = 1 − β** → probability of detecting a real effect when one exists. This is why Module 2's sample size mattered.
+
+<br> 
+
+
+::: {.fragment .pop-in .stat-badge}
+Power = 1 − β → probability of detecting a real effect when one exists
 :::
 
 ------------------------------------------------------------------------
 
 ### The Reusable Decision Sequence
 
-::: incremental
 1.  What is my research objective?
 2.  What is my outcome variable — and its type?
 3.  What is my explanatory/grouping variable — and its type?
-4.  How many groups or measurements?
-5.  Are observations independent or paired?
-6.  Is the relevant distribution compatible with parametric assumptions?
+4.  Are observations independent or paired?
+5.  Is the distribution compatible with parametric assumptions?
 7.  What effect estimate/test actually answers the question?
-:::
-
-::: fragment
-Memorize this **sequence**, not a giant table of tests.
-:::
 
 ------------------------------------------------------------------------
 
-### 🧰 Which Statistical Test Should I Use: The Interactive Decision Pathway
+### 🧰 Which Statistical Test Should I Use? — Decision Pathway
+
 
 ```{mermaid}
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#1B7F79','primaryTextColor':'#ffffff','primaryBorderColor':'#0B2545','lineColor':'#E0A458','secondaryColor':'#bad7ba33'}}}%%
 flowchart TD
   Obj[Objective] --> Desc[Describe]
   Obj --> Comp[Compare]
@@ -891,18 +896,14 @@ flowchart TD
   OutType -->|Categorical| Cat[Chi-square /<br>Fisher's exact]
   OutType -->|Continuous| Groups{How many<br>groups?}
   Groups -->|2, independent| T1[t-test /<br>Mann-Whitney U]
-  Groups -->|2, paired| T2[Paired t-test /<br>Wilcoxon signed-rank]
+  Groups -->|2, paired| T2[Paired t-test /<br>Wilcoxon]
   Groups -->|3+| T3[ANOVA /<br>Kruskal-Wallis]
-  Assoc --> Corr[Pearson /<br>Spearman correlation]
+  Assoc --> Corr[Pearson /<br>Spearman]
   Pred --> Reg[Linear /<br>Logistic regression]
 ```
 
-::: fragment
-⚠️ **A decision tree is a starting aid — not a substitute for understanding your design, assumptions, and question.**
-:::
-
-::: notes
-This is the flagship interactive tool referenced in the brief. Walk through it live using the running case: "Is hypertension associated with smoking?" → categorical outcome, categorical exposure → chi-square.
+::: {.fragment .pop-in}
+⚠️ A decision tree is a starting aid — not a substitute for understanding your design, assumptions, and question.
 :::
 
 ------------------------------------------------------------------------
@@ -929,17 +930,12 @@ chisq.test(tab)
 A researcher compares mean SBP between smokers and non-smokers. SBP is approximately normal; groups are independent.
 
 ::: fragment
-**A.** Chi-square   **B.** Independent t-test   **C.** Paired t-test   **D.** Spearman correlation
+**A.** Chi-square &nbsp;&nbsp; **B.** Independent t-test &nbsp;&nbsp; **C.** Paired t-test &nbsp;&nbsp; **D.** Spearman correlation
 :::
 
-::: fragment
+::: {.fragment .callout-correct}
 **Answer: B — Independent t-test.** Continuous outcome, two independent groups, approximately normal.
 :::
-
-```{r ttest-demo}
-#| eval: false
-t.test(systolic_bp ~ smoking, data = hypertension_demo)
-```
 
 ------------------------------------------------------------------------
 
@@ -948,7 +944,7 @@ t.test(systolic_bp ~ smoking, data = hypertension_demo)
 |  |  |
 |------------------------------------|------------------------------------|
 | **Pearson** | Linear association between two continuous, roughly normal variables |
-| **Spearman** | Monotonic association; ordinal data or non-normal continuous data |
+| **Spearman** | Monotonic association; ordinal or non-normal continuous data |
 | **PH Example** | Age vs systolic BP |
 | **Reminder** | Correlation ≠ causation; check linearity visually first |
 
@@ -968,14 +964,18 @@ ggplot(hypertension_demo, aes(age, systolic_bp)) +
 Compare hypertension prevalence between **smokers vs non-smokers**.
 
 ::: fragment
-**A.** Independent t-test   **B.** Chi-square test   **C.** Pearson correlation   **D.** Linear regression
+**A.** Independent t-test &nbsp;&nbsp; **B.** Chi-square test &nbsp;&nbsp; **C.** Pearson correlation &nbsp;&nbsp; **D.** Linear regression
 :::
 
-::: fragment
-**Answer: B.** Two categorical variables → chi-square (or Fisher's exact if any expected cell \< 5).
+::: {.fragment .callout-correct}
+**Answer: B.** Two categorical variables → chi-square (or Fisher's exact if any expected cell < 5).
 :::
 
-# Module 6 — Introduction to Regression {background-color="#0B2545"}
+# Module 6 — Introduction to Regression {background-gradient="linear-gradient(135deg, #0B2545, #1B7F79, #5B8C5A)"}
+
+::: {.icon-float}
+<i class="fa-solid fa-diagram-project fa-spin-pulse fa-3x"></i>
+:::
 
 ## 🧭 Where are we? — ... → Bivariate ✅ → **Regression** → Interpretation
 
@@ -989,29 +989,30 @@ Compare hypertension prevalence between **smokers vs non-smokers**.
 Is the SBP difference really about smoking — or partly about age?
 :::
 
-::: fragment
-**Regression lets us ask: "What is the effect of smoking, holding age constant?"**
+::: {.fragment .pop-in .callout-correct}
+Regression lets us ask: "What is the effect of smoking, holding age constant?"
 :::
 
 ------------------------------------------------------------------------
 
-### What determines your choice of regression analysis?
+### What Determines Your Choice of Regression Analysis?
 
-::: fragment
-**What variable type is your outcome variable of interest?**
+<br>
 
-Continuous -\> Linear regression
+::: {.fragment .pop-in .stat-badge}
++  Continuous outcome → Linear regression   
 
-Dichotomous/Categorical -\> Logistic regression
++  Dichotomous/Categorical outcome → Logistic regression
 :::
 
-::: fragment
-\*\* How many variables are present?
+<br>
 
-| Type of Analysis | Number of Dependent Variables (Y) (The Outcome/Goal) | Number of Independent Variables (X) (The Inputs/Predictors) | Simple Real-World Example |
+
+::: fragment
+| Type of Analysis | # Dependent (Y) | # Independent (X) | Example |
 |------------------|--------------------|------------------|------------------|
-| Bivariate | 1 | 1 | You want to see if daily sodium intake (X) can predict a patient's blood pressure (Y) |
-| Multivariate | 1 (usually) | 2 or more | You want to see how sodium intake (X1), age (X2), and weight (X3) collectively predict a patient's blood pressure (Y) |
+| Bivariate | 1 | 1 | Sodium intake (X) predicting BP (Y) |
+| Multivariate | 1 (usually) | 2+ | Sodium, age, weight (X's) predicting BP (Y) |
 :::
 
 ------------------------------------------------------------------------
@@ -1019,15 +1020,12 @@ Dichotomous/Categorical -\> Logistic regression
 ### Bivariate → Confounding → Multivariable
 
 ```{mermaid}
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#1B7F79','primaryTextColor':'#ffffff','primaryBorderColor':'#0B2545','lineColor':'#E0A458'}}}%%
 flowchart LR
   Biv[Bivariate<br>Association] --> Conf{Potential<br>Confounding?}
   Conf -->|Yes| Multi[Multivariable<br>Analysis]
   Conf -->|No| Report[Report Crude<br>Estimate]
 ```
-
-::: notes
-Confounder = associated with both exposure and outcome, not on the causal pathway. Contrast briefly with mediator (on the pathway) and effect modifier (changes the effect size itself, not merely bias).
-:::
 
 ------------------------------------------------------------------------
 
@@ -1037,11 +1035,11 @@ Confounder = associated with both exposure and outcome, not on the causal pathwa
 
 ```{r lm-demo}
 model_lm <- lm(systolic_bp ~ age + bmi, data = hypertension_demo)
-summary(model_lm)$coefficients |> round(3)
+summary(model_lm)$coefficients |> round(3) |> as_tibble(rownames = "term") |> gt()
 ```
 
-::: fragment
-Each β = expected change in SBP per **1-unit increase**, holding the other variable constant.
+::: {.fragment .pop-in}
+Each β = expected change in SBP per 1-unit increase, holding the other variable constant.
 :::
 
 ------------------------------------------------------------------------
@@ -1072,11 +1070,12 @@ ggplot(hypertension_demo, aes(age, systolic_bp)) +
 ```{r glm-demo}
 model_glm <- glm(hypertension ~ age + bmi + smoking, family = binomial,
                   data = hypertension_demo)
-exp(cbind(OR = coef(model_glm), confint(model_glm))) |> round(2)
+exp(cbind(OR = coef(model_glm), confint(model_glm))) |> round(2) |>
+  as_tibble(rownames = "term") |> gt()
 ```
 
 ::: notes
-Point out: exponentiating the logit coefficient converts it to an Odds Ratio — this single transformation confuses many residents.
+Exponentiating the logit coefficient converts it to an Odds Ratio — this transformation confuses many residents.
 :::
 
 ------------------------------------------------------------------------
@@ -1094,14 +1093,14 @@ Point out: exponentiating the logit coefficient converts it to an Odds Ratio —
 
 ### 🔮 Interpret Before We Reveal
 
-::: r-fit-text
+::: {.r-fit-text .stat-badge}
 AOR = 2.1 (95% CI: 1.3–3.4)
 :::
 
-::: fragment
-1.  Direction? → Positive association (AOR \> 1)
-2.  Does CI include 1 (the null)? → No → statistically significant at α = 0.05
-3.  Magnitude? → Exposed group has \~2.1× the odds of the outcome, adjusting for covariates
+::: {.fragment .pop-in}
+1.  Direction? → Positive association (AOR > 1)
+2.  Does CI include 1? → No → statistically significant at α = 0.05
+3.  Magnitude? → ~2.1× the odds of the outcome, adjusting for covariates
 4.  Causation? → **No** — this alone does not establish causality
 :::
 
@@ -1120,7 +1119,8 @@ forest_df <- tibble(
 
 ggplot(forest_df, aes(x = OR, y = fct_rev(variable))) +
   geom_vline(xintercept = 1, linetype = "dashed", color = "grey50") +
-  geom_pointrange(aes(xmin = lower, xmax = upper), color = pal$navy, size = 0.8) +
+  geom_pointrange(aes(xmin = lower, xmax = upper, color = variable), size = 0.9, show.legend = FALSE) +
+  scale_color_manual(values = c(pal$teal, pal$amber, pal$coral)) +
   scale_x_log10() +
   theme_workshop() +
   labs(title = "Adjusted Odds Ratios (illustrative)", x = "AOR (log scale)", y = NULL)
@@ -1128,7 +1128,7 @@ ggplot(forest_df, aes(x = OR, y = fct_rev(variable))) +
 
 ------------------------------------------------------------------------
 
-### Big Idea {.center background-color="#0B2545"}
+### Big Idea {.center background-gradient="linear-gradient(135deg, #0B2545, #D8555D)"}
 
 ::: r-fit-text
 Regression **adjusts** estimates.
@@ -1136,7 +1136,11 @@ Regression **adjusts** estimates.
 It does **not** rescue a poorly designed study.
 :::
 
-# Module 7 — Dissertation Pitfalls, Integration & Closing {background-color="#0B2545"}
+# Module 7 — Dissertation Pitfalls, Integration & Closing {background-gradient="linear-gradient(135deg, #5B8C5A, #0B2545)"}
+
+::: {.icon-float}
+<i class="fa-solid fa-graduation-cap fa-bounce fa-3x"></i>
+:::
 
 ## 🧭 Where are we? — ... → Regression ✅ → **Integration & Reporting**
 
@@ -1171,43 +1175,69 @@ It does **not** rescue a poorly designed study.
 | Age                          | 0.041237    |
 | Smoking (n = 61/300, n = 45/442) | 0.002891029 |
 
-::: fragment
-Problems: only p-values (no estimates/CIs), excessive decimal places, inconsistent denominators for smoking (300 vs 442 — missing data unexplained).
+<br>
+
+::: {.fragment .pop-in .callout-box}
+Problems: 
+
++  only p-values (no estimates/CIs)  
+
++  excessive decimal places  
+
++  inconsistent denominators for smoking — missing data unexplained.
 :::
 
 ------------------------------------------------------------------------
 
-### Five Rules to Take Home {background-color="#0B2545"}
+### Five Rules to Take Home {background-gradient="linear-gradient(135deg, #0B2545, #1B7F79, #5B8C5A)"}
 
 ::: r-fit-text
-1.  Design analysis plan from the start (conception of project) - keep your research objective in mind   
-2.  Know your variables   
-3.  Clean and describe before testing   
-4.  Report estimates and uncertainty — not p-values alone   
-5.  Use regression thoughtfully, not automatically
+1. Design analysis plan from the start — keep your research objective in mind
+2. Know your variables
+3. Clean and describe before testing
+4. Report estimates and uncertainty — not p-values alone
+5. Use regression thoughtfully, not automatically
 :::
 
 ------------------------------------------------------------------------
 
 ### 🗳️ Closing Poll — Compare to Where We Started
 
+<i class="fa-solid fa-square-poll-vertical fa-bounce fa-2x"></i>
+
 **POLL:** *How confident are you now in choosing the correct statistical test for your dissertation objective?*
 
-- A. Very confident
-- B. Somewhat confident
-- C. Not confident yet — and that's OK, here's your cheat sheet
+
+::: {.card-row}
+::: {.pill .pill-navy}
+A. Very confident
+:::
+
+::: {.pill .pill-teal}
+B. Somewhat confident
+:::
+
+::: {.pill .pill-coral}
+C. Not confident yet — here's your cheat sheet
+:::
+:::
 
 ------------------------------------------------------------------------
 
-### Thank You {.center background-color="#0B2545"}
+### Thank You {.center background-gradient="linear-gradient(135deg, #0B2545, #1B7F79, #E0A458)"}
+
+::: {.icon-float}
+<i class="fa-solid fa-hand-sparkles fa-beat-fade fa-3x"></i>
+:::
 
 ::: r-fit-text
 Questions?
 :::
 
-Take-home cheat sheet, analysis plan template, and this dataset (simulated) are available in the workshop folder.
+Take-home cheat sheet, https://stephenbalogun.github.io/stbalogun/talks.html 
 
 ::: notes
 Direct participants to `resources/analysis-cheatsheet.qmd` and `data/hypertension_demo.csv`. Remind them the dataset is entirely simulated for teaching purposes.
 :::
 
+## References
