@@ -1,0 +1,34 @@
+---
+title: "Research Data Analysis — Take-Home Cheat Sheet"
+format:
+  html:
+    embed-resources: true
+    css: cheatsheet.css
+---
+
+## Variable Type → Description → Visualization → Test
+
+| Variable Type | Summary | Graph | Common Bivariate Test |
+|---|---|---|---|
+| Nominal categorical | n (%) | Bar chart | Chi-square / Fisher's exact |
+| Ordinal categorical | n (%), median rank | Bar chart | Chi-square (or trend test) |
+| Continuous, normal | Mean ± SD | Histogram, box plot | t-test / ANOVA / Pearson r |
+| Continuous, skewed | Median (IQR) | Histogram, box plot | Mann–Whitney / Kruskal–Wallis / Spearman |
+
+## Common Regression Models
+
+| Outcome | Model |
+|---|---|
+| Continuous | Linear regression |
+| Binary | Binary logistic regression |
+
+## Quick Contrasts
+
+- **Mean ± SD vs Median (IQR):** use mean±SD only if roughly symmetric; skewed → median (IQR)
+- **Chi-square vs Fisher's exact:** Fisher's when any expected cell count < 5
+- **Independent vs paired t-test:** independent = different people; paired = same people, two time points/conditions
+- **Pearson vs Spearman:** Pearson for linear, roughly normal continuous data; Spearman for monotonic/ordinal/non-normal data
+- **95% CI:** range of plausible values for the true effect; excludes null (0 or 1) ↔ statistically significant
+- **OR vs AOR:** COR = unadjusted; AOR = adjusted for confounders — always state the reference category
+
+> Test selection also depends on your **study design and assumptions** — this sheet is a starting aid, not a substitute for understanding your data.

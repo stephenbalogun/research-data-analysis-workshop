@@ -1,0 +1,73 @@
+/*-- scss:defaults --*/
+$navy: #0B2545;
+$teal: #1B7F79;
+$green: #5B8C5A;
+$amber: #E0A458;
+$bg: #F7F5F0;
+$ink: #1C1C1C;
+
+$presentation-heading-font: "Georgia", serif;
+$presentation-font-size-root: 26px;
+$body-bg: $bg;
+$body-color: $ink;
+$link-color: $teal;
+
+/*-- scss:rules --*/
+.reveal h1, .reveal h2, .reveal h3 {
+  color: $navy;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.reveal h2 { border-bottom: 3px solid $teal; padding-bottom: 0.15em; }
+
+.reveal .slides section {
+  text-align: left;
+}
+
+.reveal .slides section.center,
+.reveal .slides section[data-background-color] h1,
+.reveal .slides section[data-background-color] h2 {
+  color: #fff;
+}
+
+.reveal table {
+  font-size: 0.75em;
+  border-collapse: collapse;
+}
+.reveal table th {
+  background-color: $navy;
+  color: #fff;
+}
+.reveal table td, .reveal table th {
+  border: 1px solid #ddd;
+  padding: 6px 10px;
+}
+
+.reveal .fragment.fade-in { transition: opacity 0.4s ease; }
+
+/* quiz option buttons */
+.quiz-option {
+  display: inline-block;
+  margin: 4px 6px 4px 0;
+  padding: 8px 14px;
+  border: 2px solid $navy;
+  border-radius: 8px;
+  background: #fff;
+  color: $navy;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+.quiz-option:hover { background: lighten($teal, 45%); }
+.quiz-option.correct { background: $green; border-color: $green; color: #fff; }
+.quiz-option.incorrect { background: #c0392b; border-color: #c0392b; color: #fff; }
+
+.callout-box {
+  background: lighten($teal, 48%);
+  border-left: 6px solid $teal;
+  padding: 12px 18px;
+  border-radius: 6px;
+}
+
+.r-fit-text { font-weight: 700; color: $navy; }

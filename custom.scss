@@ -1,0 +1,187 @@
+/*-- scss:defaults --*/
+$navy: #0B2545;
+$teal: #1B7F79;
+$green: #5B8C5A;
+$amber: #E0A458;
+$coral: #D8555D;
+$bg: #F7F5F0;
+$ink: #1C1C1C;
+
+$presentation-heading-font: "Georgia", serif;
+$presentation-font-size-root: 30px;   /* was 26px — bumped up as requested */
+$body-bg: $bg;
+$body-color: $ink;
+$link-color: $teal;
+
+/*-- scss:rules --*/
+.reveal h1, .reveal h2, .reveal h3 {
+  color: $navy;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.reveal h2 { border-bottom: 3px solid $teal; padding-bottom: 0.15em; }
+.reveal .slides section { text-align: left; }
+
+/*.reveal .slides section.center, */
+.reveal .slides section[data-background-gradient] h1,
+.reveal .slides section[data-background-gradient] h2,
+.reveal .slides section[data-background-color] h1,
+.reveal .slides section[data-background-color] h2 { color: #fff; }
+
+/* ---- bullet spacing 1.5, larger readable text ---- */
+.reveal ul, .reveal ol {
+  line-height: 1.5;
+}
+.reveal ul li, .reveal ol li {
+  margin-bottom: 0.5em;
+  line-height: 1.5;
+}
+.reveal p { line-height: 1.2; }
+
+.reveal table {
+  font-size: 0.72em;
+  border-collapse: collapse;
+}
+.reveal table th { background-color: $navy; color: #fff; }
+.reveal table td, .reveal table th {
+  border: 1px solid #ddd;
+  padding: 8px 12px;
+}
+
+/* ================= ANIMATIONS ================= */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes popIn {
+  0%   { opacity: 0; transform: scale(0.85); }
+  70%  { opacity: 1; transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+@keyframes floatUpDown {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+@keyframes gradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(27,127,121,0.4); }
+  50%      { box-shadow: 0 0 0 14px rgba(27,127,121,0); }
+}
+
+.animate-slide { animation: fadeInUp 0.6s ease both; }
+
+.reveal .fragment.pop-in.visible {
+  animation: popIn 0.5s ease both;
+}
+.reveal .fragment.fade-in.visible {
+  animation: fadeInUp 0.5s ease both;
+}
+
+.icon-float {
+  text-align: center;
+  margin-bottom: 0.3em;
+  color: $amber;
+  animation: floatUpDown 3s ease-in-out infinite;
+}
+.icon-float i { color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.25); }
+
+/* animated multi-color gradient module backgrounds get a slow shimmer */
+.reveal .slides section[data-background-gradient] {
+  background-size: 200% 200%;
+  animation: gradientShift 12s ease infinite;
+}
+
+/* colorful gradient content cards */
+.gradient-card {
+  border-radius: 14px;
+  padding: 18px 20px;
+  color: #fff;
+  animation: fadeInUp 0.6s ease both;
+}
+.card-navy  { background: linear-gradient(135deg, $navy, lighten($navy, 15%)); }
+.card-teal  { background: linear-gradient(135deg, $teal, lighten($teal, 12%)); }
+.card-amber { background: linear-gradient(135deg, $amber, darken($amber, 8%)); color: $navy; }
+.card-coral { background: linear-gradient(135deg, $coral, darken($coral, 8%)); }
+
+/* pill badges for poll options */
+.card-row { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 0.6em; }
+.pill {
+  padding: 10px 18px;
+  border-radius: 999px;
+  color: #fff;
+  font-weight: 600;
+  animation: popIn 0.5s ease both;
+}
+.pill-navy  { background: $navy; }
+.pill-teal  { background: $teal; }
+.pill-coral { background: $coral; }
+
+/* stat / answer badges */
+.stat-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, $teal, $green);
+  color: #fff;
+  padding: 12px 22px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 1.1em;
+  animation: pulseGlow 2.5s ease-in-out infinite;
+}
+
+.callout-box {
+  background: lighten($teal, 48%);
+  border-left: 6px solid $teal;
+  padding: 14px 20px;
+  border-radius: 8px;
+  animation: fadeInUp 0.5s ease both;
+}
+.callout-correct {
+  background: lighten($green, 45%);
+  border-left: 6px solid $green;
+  padding: 14px 20px;
+  border-radius: 8px;
+  animation: popIn 0.5s ease both;
+}
+
+/* quiz option buttons (for JS-driven quizzes) */
+.quiz-option {
+  display: inline-block;
+  margin: 4px 6px 4px 0;
+  padding: 10px 16px;
+  border: 2px solid $navy;
+  border-radius: 10px;
+  background: #fff;
+  color: $navy;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+.quiz-option:hover { background: lighten($teal, 45%); transform: translateY(-2px); }
+.quiz-option.correct { background: $green; border-color: $green; color: #fff; }
+.quiz-option.incorrect { background: $coral; border-color: $coral; color: #fff; }
+
+.r-fit-text { font-weight: 700; color: $navy; }
+.reveal .slides section[data-background-gradient] .r-fit-text { color: #fff; }
+
+/* animated counter */
+.count-up-wrap { color: $navy; }
+
+.calc-card,
+.result-card,
+.forest-card,
+.scatter-illustration,
+.test-badge { background:white; border-radius:22px; padding:22px 28px; box-shadow:0 10px 28px #0002; border-top:8px solid var(--teal); }
+
+.formula-step { display:inline-block; padding:10px 16px; background:#e8f5f3; border-radius:14px; font-weight:700; }
+
+.arrow{ color:var(--coral); font-weight:900; margin:0 10px; }
+
+.answer-pill{ display:inline-block; background:var(--green); color:white; padding:10px 18px; border-radius:999px; font-weight:800; }
+
+.shape-card,
+.viz-card,
+.coef-card { border-radius:22px; padding:18px; min-height:190px; box-shadow:0 10px 24px #0002; text-align:center; transition:transform .35s ease, box-shadow .35s ease; animation:floatIn .7s ease both; }
